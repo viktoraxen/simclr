@@ -33,8 +33,7 @@ class SimCLRTrainer(BaseModel):
             batch_size=batch_size,
         )
 
-        print("Training samples:", len(training_loader))
-        print("Validation samples:", len(validation_loader))
+        total_validation_loss = 0
 
         self.model.to(self.device)
         self.head.to(self.device)
@@ -88,6 +87,8 @@ class SimCLRTrainer(BaseModel):
                 epoch_bar.update(average_loss, average_validation_loss)
 
         print(f"Training complete after {epochs} epochs.")
+
+        return total_validation_loss
 
     def _loss_fn(self, outputs: Tensor) -> Tensor:
         batch_size = outputs.shape[0]

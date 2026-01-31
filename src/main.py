@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from torch.optim import Adam
 
@@ -10,7 +11,7 @@ def main():
     dataset_train = SimCLRDataset(train=True)
     dataset_test = SimCLRDataset(train=False)
 
-    resnet = ResNet6()
+    model = ResNet6()
     head = nn.Sequential(
         nn.Linear(128, 64),
         nn.ReLU(),
@@ -18,22 +19,32 @@ def main():
     )
 
     optimizer = Adam(
-        list(resnet.parameters()) + list(head.parameters()),
+        list(model.parameters()) + list(head.parameters()),
         lr=1e-3,
     )
 
     trainer = SimCLRTrainer(
-        model=resnet,
+        model=model,
         head=head,
         training_dataset=dataset_train,
         validation_dataset=dataset_test,
         optimizer=optimizer,
     )
 
-    trainer.train(
+    loss = trainer.train(
         epochs=15,
         batch_size=128,
     )
+
+    model_name = type(model).__name__
+    result_name = f"{model_name}_{loss:.4f}"
+    result_path = f"models/{result_name}.pth"
+
+    q = input(f"Save to '{result_path}'? Y/n:")
+
+    if q == "y" or q == "":
+        torch.save(model.state_dict(), result_path)
+        print(f"Model saved to '{result_path}'.")
 
 
 if __name__ == "__main__":
