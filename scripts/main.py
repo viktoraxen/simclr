@@ -13,10 +13,12 @@ from trainer import SimCLRTrainer
 
 
 def main():
-    epochs = 50
+    epochs = 400
     batch_size = 256
     learning_rate = 0.3 * batch_size / 256
     weight_decay = 1e-6
+    scheduler_patience = 10
+    trainer_patience = 30
 
     dataset_train = SimCLRDataset(train=True)
     dataset_test = SimCLRDataset(train=False)
@@ -37,8 +39,8 @@ def main():
     scheduler = ReduceLROnPlateau(
         optimizer,
         factor=0.1,
-        patience=10,
-        min_lr=1e-6,
+        patience=scheduler_patience,
+        min_lr=0,
     )
 
     trainer = SimCLRTrainer(
@@ -48,6 +50,7 @@ def main():
         validation_dataset=dataset_test,
         optimizer=optimizer,
         scheduler=scheduler,
+        patience=trainer_patience,
     )
 
     loss = trainer.train(

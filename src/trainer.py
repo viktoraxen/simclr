@@ -1,3 +1,4 @@
+import copy
 from typing import Any
 
 import torch
@@ -17,6 +18,7 @@ class SimCLRTrainer(BaseModel):
     scheduler: Any
     training_dataset: Dataset
     validation_dataset: Dataset
+    patience: int
     temperature: float = 0.07
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -48,12 +50,13 @@ class SimCLRTrainer(BaseModel):
         print(f"{'Training samples':<20} {len(self.training_dataset)}")
         print(f"{'Validation samples':<20} {len(self.validation_dataset)}")
         print(f"{'Batch size':<20} {batch_size}")
-        print(f"{'Epochs':<20} {epochs}")
+        print(f"{'Max epochs':<20} {epochs}")
         print()
         print(f"{'Optimizer':<20} {type(self.optimizer).__name__}")
         print(f"{'Learning rate':<20} {lr}")
         print(f"{'Weight decay':<20} {weight_decay}")
         print(f"{'Scheduler':<20} {type(self.scheduler).__name__}")
+        print(f"{'Early stop patience':<20} {self.patience}")
         print()
         print(f"{'Temperature':<20} {self.temperature}")
         print(f"{'Device':<20} {self.device}")
@@ -85,10 +88,16 @@ class SimCLRTrainer(BaseModel):
             prefetch_factor=2,
         )
 
-        average_validation_loss = 0
+        average_validation_loss = 0.0
+        best_validation_loss = float("inf")
+        epochs_without_improvement = 0
+        final_epoch = epochs
 
         self.model.to(self.device)
         self.head.to(self.device)
+
+        best_model_state = copy.deepcopy(self.model.state_dict())
+        best_head_state = copy.deepcopy(self.head.state_dict())
 
         for epoch in range(1, epochs + 1):
             total_loss = 0
@@ -137,11 +146,27 @@ class SimCLRTrainer(BaseModel):
 
                 epoch_bar.update(average_loss, average_validation_loss)
 
+            if average_validation_loss < best_validation_loss:
+                epochs_without_improvement = 0
+                best_validation_loss = average_validation_loss
+
+                best_model_state = copy.deepcopy(self.model.state_dict())
+                best_head_state = copy.deepcopy(self.head.state_dict())
+            else:
+                epochs_without_improvement += 1
+
             self.scheduler.step(average_validation_loss)
 
-        print(f"Training complete after {epochs} epochs.")
+            if epochs_without_improvement > self.patience:
+                final_epoch = epoch
+                break
 
-        return average_validation_loss
+        self.model.load_state_dict(best_model_state)
+        self.head.load_state_dict(best_head_state)
+
+        print(f"Training complete after {final_epoch} epochs.")
+
+        return best_validation_loss
 
     def _loss_fn(self, outputs: Tensor) -> Tensor:
         batch_size = outputs.shape[0]
