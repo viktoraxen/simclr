@@ -1,0 +1,51 @@
+[project]
+name = "simclr"
+version = "0.1.0"
+description = "Implementation of SimCLR for the CIFAR-10 dataset, using a small ResNet."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "matplotlib>=3.10.8",
+    "pydantic>=2.10.0",
+    "rich>=14.3.1",
+    "torch>=2.5.0",
+    "torchvision>=0.20.0",
+]
+
+[tool.uv]
+conflicts = [
+    [
+      { extra = "cpu" },
+      { extra = "gpu" },
+    ],
+]
+required-environments = [
+    "sys_platform=='linux'",
+]
+
+[project.optional-dependencies]
+cpu = [ "torch", "torchvision" ]
+gpu = [ "torch", "torchvision" ]
+
+[tool.uv.sources]
+torch = [
+  { index = "torch-cpu", extra = "cpu" },
+  { index = "torch-gpu", extra = "gpu" },
+]
+torchvision = [
+  { index = "torch-cpu", extra = "cpu" },
+  { index = "torch-gpu", extra = "gpu" },
+]
+
+[[tool.uv.index]]
+name = "torch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "torch-gpu"
+url = "https://download.pytorch.org/whl/cu121"
+explicit = true
+
+[tool.pyright]
+extraPaths = ["src"]
