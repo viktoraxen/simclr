@@ -3,6 +3,9 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 from torch.optim import AdamW
+from torch.optim.lr_scheduler import (
+    ReduceLROnPlateau,
+)
 
 from dataset import SimCLRDataset
 from network import ResNet6
@@ -10,8 +13,9 @@ from trainer import SimCLRTrainer
 
 
 def main():
+    epochs = 50
     batch_size = 256
-    learning_rate = 1e-3
+    learning_rate = 0.3 * batch_size / 256
     weight_decay = 1e-6
 
     dataset_train = SimCLRDataset(train=True)
@@ -30,16 +34,24 @@ def main():
         weight_decay=weight_decay,
     )
 
+    scheduler = ReduceLROnPlateau(
+        optimizer,
+        factor=0.1,
+        patience=10,
+        min_lr=1e-6,
+    )
+
     trainer = SimCLRTrainer(
         model=model,
         head=head,
         training_dataset=dataset_train,
         validation_dataset=dataset_test,
         optimizer=optimizer,
+        scheduler=scheduler,
     )
 
     loss = trainer.train(
-        epochs=50,
+        epochs=epochs,
         batch_size=batch_size,
     )
 

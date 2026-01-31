@@ -1,3 +1,5 @@
+from typing import Any
+
 import torch
 from pydantic import BaseModel, ConfigDict
 from torch import Tensor, nn, optim
@@ -12,6 +14,7 @@ class SimCLRTrainer(BaseModel):
     model: nn.Module
     head: nn.Module
     optimizer: optim.Optimizer
+    scheduler: Any
     training_dataset: Dataset
     validation_dataset: Dataset
     temperature: float = 0.07
@@ -33,17 +36,25 @@ class SimCLRTrainer(BaseModel):
         model_params = self._count_params(self.model)
         head_params = self._count_params(self.head)
         total_params = model_params + head_params
+
         lr = self.optimizer.param_groups[0]["lr"]
+        weight_decay = self.optimizer.param_groups[0].get("weight_decay", 0)
 
         print(f"{'Model':<20} {type(self.model).__name__}")
         print(f"{'Model params':<20} {self._format_params(model_params)}")
         print(f"{'Head params':<20} {self._format_params(head_params)}")
         print(f"{'Total params':<20} {self._format_params(total_params)}")
+        print()
         print(f"{'Training samples':<20} {len(self.training_dataset)}")
         print(f"{'Validation samples':<20} {len(self.validation_dataset)}")
         print(f"{'Batch size':<20} {batch_size}")
         print(f"{'Epochs':<20} {epochs}")
+        print()
+        print(f"{'Optimizer':<20} {type(self.optimizer).__name__}")
         print(f"{'Learning rate':<20} {lr}")
+        print(f"{'Weight decay':<20} {weight_decay}")
+        print(f"{'Scheduler':<20} {type(self.scheduler).__name__}")
+        print()
         print(f"{'Temperature':<20} {self.temperature}")
         print(f"{'Device':<20} {self.device}")
         print()
@@ -125,6 +136,8 @@ class SimCLRTrainer(BaseModel):
                         average_validation_loss = total_validation_loss / (i + 1)
 
                 epoch_bar.update(average_loss, average_validation_loss)
+
+            self.scheduler.step(average_validation_loss)
 
         print(f"Training complete after {epochs} epochs.")
 
