@@ -98,7 +98,7 @@ def visualize_tsne(embeddings: torch.Tensor, labels: torch.Tensor) -> None:
     tsne = TSNE(n_components=2, perplexity=30, random_state=42)
     projected = tsne.fit_transform(embeddings.numpy())
 
-    fig, ax = plt.subplots(figsize=(12, 10))
+    _, ax = plt.subplots(figsize=(12, 10))
 
     scatter = ax.scatter(
         projected[:, 0],

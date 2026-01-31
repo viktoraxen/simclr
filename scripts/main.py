@@ -2,7 +2,7 @@ from pathlib import Path
 
 import torch
 import torch.nn as nn
-from torch.optim import Adam
+from torch.optim import AdamW
 
 from dataset import SimCLRDataset
 from network import ResNet6
@@ -10,6 +10,10 @@ from trainer import SimCLRTrainer
 
 
 def main():
+    batch_size = 256
+    learning_rate = 1e-3
+    weight_decay = 1e-6
+
     dataset_train = SimCLRDataset(train=True)
     dataset_test = SimCLRDataset(train=False)
 
@@ -20,9 +24,10 @@ def main():
         nn.Linear(64, 32),
     )
 
-    optimizer = Adam(
+    optimizer = AdamW(
         list(model.parameters()) + list(head.parameters()),
-        lr=1e-3,
+        lr=learning_rate,
+        weight_decay=weight_decay,
     )
 
     trainer = SimCLRTrainer(
@@ -35,7 +40,7 @@ def main():
 
     loss = trainer.train(
         epochs=50,
-        batch_size=256,
+        batch_size=batch_size,
     )
 
     model_name = type(model).__name__
