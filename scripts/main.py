@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import torch
 import torch.nn as nn
 from torch.optim import Adam
@@ -32,7 +34,7 @@ def main():
     )
 
     loss = trainer.train(
-        epochs=15,
+        epochs=50,
         batch_size=256,
     )
 
@@ -43,7 +45,11 @@ def main():
     q = input(f"Save to '{result_path}'? Y/n:")
 
     if q == "y" or q == "":
-        torch.save(model.state_dict(), result_path)
+        Path("models").mkdir(exist_ok=True)
+        torch.save(
+            {"model": model.state_dict(), "head": head.state_dict()},
+            result_path,
+        )
         print(f"Model saved to '{result_path}'.")
 
 
