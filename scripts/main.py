@@ -33,7 +33,7 @@ def main():
 
     loss = trainer.train(
         epochs=15,
-        batch_size=128,
+        batch_size=256,
     )
 
     model_name = type(model).__name__

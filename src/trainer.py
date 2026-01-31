@@ -22,18 +22,22 @@ class SimCLRTrainer(BaseModel):
         epochs: int = 1,
         batch_size: int = 1,
     ):
+        print(f"Training using device '{self.device}'.")
+
         training_loader = DataLoader(
             self.training_dataset,
             batch_size=batch_size,
             shuffle=True,
+            num_workers=16,
         )
 
         validation_loader = DataLoader(
             self.validation_dataset,
             batch_size=batch_size,
+            num_workers=16,
         )
 
-        total_validation_loss = 0
+        average_validation_loss = 0
 
         self.model.to(self.device)
         self.head.to(self.device)
@@ -88,7 +92,7 @@ class SimCLRTrainer(BaseModel):
 
         print(f"Training complete after {epochs} epochs.")
 
-        return total_validation_loss
+        return average_validation_loss
 
     def _loss_fn(self, outputs: Tensor) -> Tensor:
         batch_size = outputs.shape[0]
