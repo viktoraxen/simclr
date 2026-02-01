@@ -1,6 +1,40 @@
-## SimCLR Experiments
+## SimCLR
 
 This repository contains experiments training a custom ResNet-based architecture using the SimCLR framework to create meaningful image embeddings.
+
+### Running the project
+
+Install dependencies using `uv`:
+
+```bash
+# If using GPU
+uv sync
+
+# If using CPU
+uv sync --extra cpu
+```
+
+Train the backbone (trained model is saved to `models/ResNet9_<best_validation_loss>.pth`):
+
+```bash
+uv run scripts/main.py
+```
+
+Train and evaluate the classification head:
+
+```bash
+uv run scripts/classifier.py
+```
+
+To see a t-SNE projection of the backbones embeddings:
+
+```bash
+uv run scripts/visualize.py
+```
+
+## Experiments
+
+Description of performed experiments and results.
 
 ### Dataset
 
