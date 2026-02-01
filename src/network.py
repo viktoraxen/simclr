@@ -75,12 +75,12 @@ class BasicBlock(nn.Module):
         return F.relu(x_)
 
 
-class ResNet6(nn.Module):
+class ResNet9(nn.Module):
     def __init__(self):
         super().__init__()
 
         # In 3, 32, 32
-        # Out 32, 16, 16
+        # Out 32, 32, 32
         self.tail = nn.Sequential(
             nn.Conv2d(
                 in_channels=3,
@@ -88,37 +88,40 @@ class ResNet6(nn.Module):
                 kernel_size=5,
                 padding=2,
             ),
-            nn.MaxPool2d(kernel_size=2),
         )
 
-        # In 32, 16, 16
-        # Out 32, 16, 16
+        # In 32, 32, 32
+        # Out 32, 32, 32
         self.conv32 = nn.Sequential(
             BasicBlock(32, 32),
             BasicBlock(32, 32),
+            BasicBlock(32, 32),
         )
 
-        # In 32, 16, 16
-        # Out 64, 8, 8
+        # In 32, 32, 32
+        # Out 64, 16, 16
         self.conv64 = nn.Sequential(
             BasicBlock(32, 64),
             BasicBlock(64, 64),
+            BasicBlock(64, 64),
         )
 
-        # In 64, 8, 8
-        # Out 128, 4, 4
+        # In 64, 16, 16
+        # Out 128, 8, 8
         self.conv128 = nn.Sequential(
             BasicBlock(64, 128),
             BasicBlock(128, 128),
+            BasicBlock(128, 128),
+            BasicBlock(128, 128),
         )
 
-        # In 32, 4, 4
+        # In 32, 8, 8
         # Out 128
         self.body = nn.Sequential(
             self.conv32,
             self.conv64,
             self.conv128,
-            nn.AvgPool2d(4),
+            nn.AvgPool2d(8),
             nn.Flatten(),
         )
 
