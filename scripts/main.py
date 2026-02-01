@@ -23,10 +23,6 @@ def main():
     dataset_train = SimCLRDataset(train=True)
     dataset_test = SimCLRDataset(train=False)
 
-    print(dataset_train[0])
-
-    exit()
-
     model = ResNet9()
     head = nn.Sequential(
         nn.Linear(128, 128),

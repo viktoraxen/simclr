@@ -1,3 +1,6 @@
+from pathlib import Path
+
+import torch
 import torch.nn.functional as F
 from torch import Tensor, nn
 
@@ -130,3 +133,16 @@ class ResNet9(nn.Module):
         x = self.body(x)
 
         return x
+
+    @classmethod
+    def load(cls, path: str | Path, device: str) -> "ResNet9":
+        checkpoint = torch.load(
+            path,
+            map_location=device,
+            weights_only=True,
+        )
+
+        model = cls()
+        model.load_state_dict(checkpoint["model"])
+
+        return model
