@@ -4,6 +4,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from dataset import CIFAR10Extracted
 from network import init_model
+from tester import ClassificationTester
 from trainer import ClassifierTrainer
 
 
@@ -52,6 +53,14 @@ def main():
         epochs=epochs,
         batch_size=batch_size,
     )
+
+    tester = ClassificationTester(
+        model=model,
+        dataset=validation_dataset,
+    )
+
+    metrics = tester.metrics()
+    metrics.print_table()
 
 
 if __name__ == "__main__":
