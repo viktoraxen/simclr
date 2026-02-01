@@ -135,6 +135,65 @@ class ResNet10(nn.Module):
         return x
 
 
+class ResNet12(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        # In 3, 32, 32
+        # Out 48, 32, 32
+        self.tail = nn.Sequential(
+            nn.Conv2d(
+                in_channels=3,
+                out_channels=48,
+                kernel_size=7,
+                padding=3,
+            ),
+        )
+
+        # In 48, 32, 32
+        # Out 48, 32, 32
+        self.conv48 = nn.Sequential(
+            BasicBlock(48, 48),
+            BasicBlock(48, 48),
+            BasicBlock(48, 48),
+            BasicBlock(48, 48),
+        )
+
+        # In 48, 32, 32
+        # Out 96, 16, 16
+        self.conv96 = nn.Sequential(
+            BasicBlock(48, 96),
+            BasicBlock(96, 96),
+            BasicBlock(96, 96),
+            BasicBlock(96, 96),
+        )
+
+        # In 96, 16, 16
+        # Out 192, 8, 8
+        self.conv192 = nn.Sequential(
+            BasicBlock(96, 192),
+            BasicBlock(192, 192),
+            BasicBlock(192, 192),
+            BasicBlock(192, 192),
+        )
+
+        # In 48, 32, 32
+        # Out 192
+        self.body = nn.Sequential(
+            self.conv48,
+            self.conv96,
+            self.conv192,
+            nn.AvgPool2d(8),
+            nn.Flatten(),
+        )
+
+    def forward(self, x: Tensor) -> Tensor:
+        x = self.tail(x)
+        x = self.body(x)
+
+        return x
+
+
 def load_model(cls, path: str | Path, device: str) -> nn.Module:
     checkpoint = torch.load(
         path,

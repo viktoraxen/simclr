@@ -3,26 +3,26 @@ from torch.optim import AdamW
 from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
 
 from dataset import SimCLRDataset
-from network import ResNet10, save_model
+from network import ResNet12, save_model
 from trainer import SimCLRTrainer
 
 
 def main():
-    epochs = 400
+    epochs = 800
     batch_size = 1024
     learning_rate = 0.3 * batch_size / 256
     weight_decay = 1e-6
-    warmup_epochs = 10
+    warmup_epochs = 30
     temperature = 0.07
 
     dataset_train = SimCLRDataset(train=True)
     dataset_test = SimCLRDataset(train=False)
 
-    model = ResNet10()
+    model = ResNet12()
     head = nn.Sequential(
-        nn.Linear(128, 256),
+        nn.Linear(192, 384),
         nn.ReLU(),
-        nn.Linear(256, 128),
+        nn.Linear(384, 192),
     )
 
     optimizer = AdamW(
