@@ -44,14 +44,16 @@ Training was done using the [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.ht
 
 The ResNet9 network used is defined in `src/network.py`.
 
-The network starts with an upscaling to 32 feature dimensions using a 5x5 convolutional kernel, followed by three sets of three basic convolution blocks with residual connections. The last set outputs a feature map of shape `[128, 8, 8]`, which is converted to a `128`-dimensional feature vector through average pooling.
+It starts with an upscaling to 32 feature dimensions using a 5x5 convolutional kernel, followed by three sets of three basic convolution blocks with residual connections. The last set outputs a feature map of shape `[128, 8, 8]`, which is converted to a `128`-dimensional feature vector through average pooling.
 
 ### Evaluation
 
-The trained network is evaluated by training a small classification head with one 128 neuron wide hidden layer, with a ReLU activation, trained using the cross-entropy loss.
+Evaluation was done by training a small classification head with one 128 neuron wide hidden layer, with a ReLU activation, trained using the cross-entropy loss.
 
 ### Results
 
-The currently best achieved accuracy by the classifier head is **76.81 %**
+Best achieved accuracy (so far) by the classifier head is **76.81 %**
 
-The used ResNet had a contrastive loss of **1.1987**
+The used backbone ResNet had a contrastive loss of **1.1987**
+
+#### Visualizations
