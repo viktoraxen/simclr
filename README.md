@@ -14,15 +14,7 @@ The network starts with an upscaling to 32 feature dimensions using a 5x5 convol
 
 ### Evaluation
 
-The trained network is evaluated by training a small classification head using the cross-entropy loss. The classification head is defined in pytorch:
-
-```python
-model = nn.Sequential(
-    nn.Linear(128, 128),
-    nn.ReLU(),
-    nn.Linear(128, 10),
-)
-```
+The trained network is evaluated by training a small classification head with one 128 neuron wide hidden layer, with a ReLU activation, trained using the cross-entropy loss.
 
 ### Results
 
