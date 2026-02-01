@@ -186,7 +186,8 @@ def init_model(models_dir: str | Path | None = None) -> nn.Module:
     if choice == 0:
         return ResNet10()
 
-    return ResNet10.load(
+    return load_model(
+        ResNet10,
         models[choice - 1],
         device="cuda" if torch.cuda.is_available() else "cpu",
     )

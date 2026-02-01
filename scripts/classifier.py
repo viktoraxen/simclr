@@ -10,7 +10,7 @@ from trainer import ClassifierTrainer
 
 def main():
     epochs = 100
-    batch_size = 512
+    batch_size = 1024
     learning_rate = 1e-3
     weight_decay = 1e-6
     scheduler_patience = 10
