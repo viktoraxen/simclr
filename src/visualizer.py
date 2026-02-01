@@ -40,27 +40,60 @@ class SimCLRVisualizer(BaseModel):
         fig = plt.figure(figsize=(12, 10))
         ax = fig.add_subplot(111, projection="3d")
 
-        scatter = ax.scatter(
-            projected[:, 0],
-            projected[:, 1],
-            projected[:, 2],
-            c=labels.numpy(),
-            cmap="tab10",
-            alpha=0.6,
-            s=10,
-        )
+        labels_np = labels.numpy()
+        cmap = plt.cm.tab10
+        unique_labels = sorted(set(labels_np.astype(int)))
+
+        scatters = []
+        for label in unique_labels:
+            mask = labels_np == label
+            sc = ax.scatter(
+                projected[mask, 0],
+                projected[mask, 1],
+                projected[mask, 2],
+                c=[cmap(label / 10)],
+                alpha=0.6,
+                s=10,
+                label=CIFAR10_CLASSES[label],
+            )
+            scatters.append(sc)
 
         ax.set_xlabel("t-SNE 1")
         ax.set_ylabel("t-SNE 2")
         ax.set_zlabel("t-SNE 3")
         ax.set_title("SimCLR Embeddings (3D t-SNE)")
 
-        handles, _ = scatter.legend_elements()
-        ax.legend(
-            handles,
-            CIFAR10_CLASSES,
-            loc="best",
-        )
+        legend = ax.legend(loc="best", fontsize=12, markerscale=2)
+        for legend_handle in legend.legend_handles:
+            legend_handle.set_picker(True)
+            legend_handle.set_pickradius(10)
+        for text in legend.get_texts():
+            text.set_picker(True)
+
+        selected_class = [None]
+
+        def on_pick(event):
+            if event.artist in legend.legend_handles:
+                idx = legend.legend_handles.index(event.artist)
+            elif event.artist in legend.get_texts():
+                idx = list(legend.get_texts()).index(event.artist)
+            else:
+                return
+
+            if selected_class[0] == idx:
+                for sc in scatters:
+                    sc.set_alpha(0.6)
+
+                selected_class[0] = None
+            else:
+                for i, sc in enumerate(scatters):
+                    sc.set_alpha(0.6 if i == idx else 0.05)
+
+                selected_class[0] = idx
+
+            fig.canvas.draw_idle()
+
+        fig.canvas.mpl_connect("pick_event", on_pick)
 
         plt.tight_layout()
         plt.show()
