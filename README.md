@@ -61,5 +61,5 @@ The used backbone ResNet had a contrastive loss of **1.1987**
 
 The clustering of the trained ResNet, compared to an untrained network is shown:
 
-<img width="600" height="900" alt="comparison_tsne" src="https://github.com/user-attachments/assets/19a9fb3e-b313-4dc0-bd05-1af7688e3bbf" />
+<img width="600" height="900" alt="comparison_tsne" src="https://github.com/user-attachments/assets/5f3198de-cac2-4b81-9c71-96a022be4d61" />
 </details>
