@@ -74,7 +74,7 @@ class SimCLRTrainer(BaseModel):
             batch_size=batch_size,
             shuffle=True,
             num_workers=16,
-            pin_memory=True,
+            pin_memory=self.device == "cuda",
             persistent_workers=True,
             prefetch_factor=2,
         )
@@ -83,7 +83,7 @@ class SimCLRTrainer(BaseModel):
             self.validation_dataset,
             batch_size=batch_size,
             num_workers=16,
-            pin_memory=True,
+            pin_memory=self.device == "cuda",
             persistent_workers=True,
             prefetch_factor=2,
         )

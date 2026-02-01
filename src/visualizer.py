@@ -5,27 +5,28 @@ from sklearn.manifold import TSNE
 from torch import Tensor, nn
 from torch.utils.data import Dataset
 
+CIFAR10_CLASSES: list[str] = [
+    "airplane",
+    "automobile",
+    "bird",
+    "cat",
+    "deer",
+    "dog",
+    "frog",
+    "horse",
+    "ship",
+    "truck",
+]
+
 
 class SimCLRVisualizer(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    CIFAR10_CLASSES: list[str] = [
-        "airplane",
-        "automobile",
-        "bird",
-        "cat",
-        "deer",
-        "dog",
-        "frog",
-        "horse",
-        "ship",
-        "truck",
-    ]
 
     model: nn.Module
     dataset: Dataset
     embeddings: Tensor | None = None
     labels: Tensor | None = None
+    samples: int | None = None
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
 
     def tsne(self, perplexity: int = 30):
@@ -57,7 +58,7 @@ class SimCLRVisualizer(BaseModel):
         handles, _ = scatter.legend_elements()
         ax.legend(
             handles,
-            SimCLRVisualizer.CIFAR10_CLASSES,
+            CIFAR10_CLASSES,
             loc="best",
         )
 
@@ -72,10 +73,10 @@ class SimCLRVisualizer(BaseModel):
 
         dataloader = torch.utils.data.DataLoader(
             self.dataset,
-            batch_size=256,
+            batch_size=512,
             shuffle=False,
             num_workers=16,
-            pin_memory=True,
+            pin_memory=self.device == "cuda",
         )
 
         self.model.eval()
@@ -83,16 +84,25 @@ class SimCLRVisualizer(BaseModel):
 
         embeddings = []
         labels = []
+        current_samples = 0
 
         with torch.no_grad():
             for images, targets in dataloader:
+                if self.samples is not None and current_samples >= self.samples:
+                    break
+
                 images = images.to(self.device)
                 features = self.model(images)
+                current_samples += len(images)
 
                 embeddings.append(features.cpu())
                 labels.extend(targets.tolist())
 
         self.embeddings = torch.cat(embeddings)
         self.labels = Tensor(labels)
+
+        if self.samples is not None:
+            self.embeddings = self.embeddings[: self.samples]
+            self.labels = self.labels[: self.samples]
 
         return self.embeddings, self.labels

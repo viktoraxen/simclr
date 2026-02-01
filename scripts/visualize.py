@@ -19,7 +19,7 @@ def select_model(models_dir: Path) -> Path | None:
     for i, model_path in enumerate(models):
         print(f"  {i + 1}: {model_path.name}")
 
-    choice = int(input("\nSelect model number: "))
+    choice = int(input("\nSelect model: "))
 
     while not (0 < choice <= len(models)):
         choice = int(input("\nInvalid selection, try again: "))
@@ -35,8 +35,11 @@ def main():
         print("No models found.")
         return
 
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
     checkpoint = torch.load(
         model_path,
+        map_location=device,
         weights_only=True,
     )
 
@@ -54,11 +57,13 @@ def main():
         root="~/data/cifar-10/",
         train=False,
         transform=transform,
+        download=True,
     )
 
     visualizer = SimCLRVisualizer(
         model=model,
         dataset=dataset,
+        samples=2000,
     )
 
     visualizer.tsne()
