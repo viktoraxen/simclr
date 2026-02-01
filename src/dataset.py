@@ -31,7 +31,7 @@ class SimCLRDataset(Dataset):
         self,
         idx: int,
     ) -> Tensor:
-        original, _ = self.data[idx]
+        original, label = self.data[idx]
 
         augment1 = self.sample_transform()(original)
         augment2 = self.sample_transform()(original)
