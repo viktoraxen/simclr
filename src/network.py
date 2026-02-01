@@ -143,6 +143,50 @@ class ResNet9(nn.Module):
         )
 
         model = cls()
-        model.load_state_dict(checkpoint["model"])
+        model.load_state_dict(checkpoint)
 
         return model
+
+
+def save_model(model: nn.Module, path: str | Path, suffix: str = ""):
+    model_name = type(model).__name__
+    model_path = Path(path) / f"{model_name}{suffix}.pth"
+    model_path.parent.mkdir(exist_ok=True)
+
+    torch.save(
+        model.state_dict(),
+        model_path,
+    )
+
+    print(f"Model saved to '{model_path}'.")
+
+
+def init_model(models_dir: str | Path | None = None) -> nn.Module:
+    if models_dir is None:
+        return ResNet9()
+
+    models_dir = Path(models_dir) if isinstance(models_dir, str) else models_dir
+    models = sorted(models_dir.glob("*.pth")) if models_dir.exists() else []
+
+    if not models:
+        return ResNet9()
+
+    print("Available models:")
+
+    print("  0: Untrained")
+
+    for i, model_path in enumerate(models):
+        print(f"  {i + 1}: {model_path.name}")
+
+    choice = int(input("\nSelect model: "))
+
+    while not (0 <= choice <= len(models)):
+        choice = int(input("\nInvalid selection, try again: "))
+
+    if choice == 0:
+        return ResNet9()
+
+    return ResNet9.load(
+        models[choice - 1],
+        device="cuda" if torch.cuda.is_available() else "cpu",
+    )

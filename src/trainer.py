@@ -1,5 +1,5 @@
 import copy
-from typing import Any
+from typing import Any, Callable
 
 import torch
 from pydantic import BaseModel, ConfigDict
@@ -108,7 +108,7 @@ class SimCLRTrainer(BaseModel):
 
             with EpochBar(epoch, len(training_loader)) as epoch_bar:
                 for i, inputs in enumerate(training_loader):
-                    inputs = inputs.to(self.device, non_blocking=True).flatten(0, 1)
+                    inputs = torch.cat(inputs, dim=0).to(self.device, non_blocking=True)
 
                     self.optimizer.zero_grad()
 
@@ -181,3 +181,112 @@ class SimCLRTrainer(BaseModel):
         labels = torch.where(labels % 2 == 0, labels + 1, labels - 1)
 
         return nn.functional.cross_entropy(logits, labels)
+
+
+class ClassifierTrainer(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    model: nn.Module
+    optimizer: optim.Optimizer
+    scheduler: Any
+    training_dataset: Dataset
+    validation_dataset: Dataset
+    loss_fn: Callable[[Tensor, Tensor], Tensor]
+    patience: int = 10
+    device: str = "cuda" if torch.cuda.is_available() else "cpu"
+
+    def train(
+        self,
+        batch_size: int = 1,
+        epochs: int = 1,
+    ):
+        training_loader = DataLoader(
+            self.training_dataset,
+            batch_size=batch_size,
+            shuffle=True,
+            num_workers=16,
+            pin_memory=self.device == "cuda",
+            persistent_workers=True,
+            prefetch_factor=2,
+        )
+
+        validation_loader = DataLoader(
+            self.validation_dataset,
+            batch_size=batch_size,
+            num_workers=16,
+            pin_memory=self.device == "cuda",
+            persistent_workers=True,
+            prefetch_factor=2,
+        )
+
+        average_validation_loss = 0.0
+        best_validation_loss = float("inf")
+        epochs_without_improvement = 0
+        final_epoch = epochs
+
+        self.model.to(self.device)
+
+        best_model_state = copy.deepcopy(self.model.state_dict())
+
+        for epoch in range(1, epochs + 1):
+            total_loss = 0
+            average_loss = 0.0
+
+            self.model.train()
+
+            with EpochBar(epoch, len(training_loader)) as epoch_bar:
+                for i, (inputs, labels) in enumerate(training_loader):
+                    inputs = inputs.to(self.device, non_blocking=True)
+                    labels = labels.to(self.device, non_blocking=True)
+
+                    self.optimizer.zero_grad()
+
+                    outputs = self.model(inputs)
+
+                    loss = self.loss_fn(outputs, labels)
+                    loss.backward()
+
+                    self.optimizer.step()
+
+                    total_loss += loss.item()
+                    average_loss = total_loss / (i + 1)
+
+                    epoch_bar.update(average_loss)
+
+                self.model.eval()
+
+                total_validation_loss = 0
+                average_validation_loss = 0.0
+
+                with torch.no_grad():
+                    for i, (inputs, labels) in enumerate(validation_loader):
+                        inputs = inputs.to(self.device, non_blocking=True)
+                        labels = labels.to(self.device, non_blocking=True)
+
+                        outputs = self.model(inputs)
+                        loss = self.loss_fn(outputs, labels)
+
+                        total_validation_loss += loss.item()
+                        average_validation_loss = total_validation_loss / (i + 1)
+
+                epoch_bar.update(average_loss, average_validation_loss)
+
+            if average_validation_loss < best_validation_loss:
+                epochs_without_improvement = 0
+                best_validation_loss = average_validation_loss
+
+                best_model_state = copy.deepcopy(self.model.state_dict())
+            else:
+                epochs_without_improvement += 1
+
+            self.scheduler.step(average_validation_loss)
+
+            if epochs_without_improvement > self.patience:
+                final_epoch = epoch
+                break
+
+        self.model.load_state_dict(best_model_state)
+
+        print(f"Training complete after {final_epoch} epochs.")
+
+        return best_validation_loss

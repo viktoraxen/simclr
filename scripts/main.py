@@ -1,6 +1,3 @@
-from pathlib import Path
-
-import torch
 import torch.nn as nn
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import (
@@ -8,7 +5,7 @@ from torch.optim.lr_scheduler import (
 )
 
 from dataset import SimCLRDataset
-from network import ResNet9
+from network import ResNet9, save_model
 from trainer import SimCLRTrainer
 
 
@@ -58,20 +55,7 @@ def main():
         batch_size=batch_size,
     )
 
-    model_name = type(model).__name__
-    result_name = f"{model_name}_{loss:.4f}"
-    result_path = f"models/{result_name}.pth"
-
-    # q = input(f"Save to '{result_path}'? Y/n:")
-    #
-    # if q == "y" or q == "":
-
-    Path("models").mkdir(exist_ok=True)
-    torch.save(
-        {"model": model.state_dict(), "head": head.state_dict()},
-        result_path,
-    )
-    print(f"Model saved to '{result_path}'.")
+    save_model(model, "models", f"_{loss}")
 
 
 if __name__ == "__main__":

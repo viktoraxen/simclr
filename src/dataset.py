@@ -2,12 +2,13 @@ from pathlib import Path
 
 import torch
 import torchvision.transforms.v2 as T
-from torch import Tensor, stack
+from torch import Tensor, nn
+from torch.types import Number
 from torch.utils.data import Dataset
 from torchvision.datasets import CIFAR10
 
 
-class SimCLRDataset(Dataset):
+class CIFAR10Tensor(CIFAR10):
     def __init__(
         self,
         path: str | Path = "~/data/cifar-10/",
@@ -20,23 +21,25 @@ class SimCLRDataset(Dataset):
             ]
         )
 
-        self.data = CIFAR10(
+        super().__init__(
             root=path,
             train=train,
             transform=transform,
             download=True,
         )
 
+
+class SimCLRDataset(CIFAR10Tensor):
     def __getitem__(
         self,
         idx: int,
-    ) -> Tensor:
-        original, label = self.data[idx]
+    ) -> tuple[Tensor, Tensor]:
+        original, _ = super().__getitem__(idx)
 
         augment1 = self.sample_transform()(original)
         augment2 = self.sample_transform()(original)
 
-        return stack([augment1, augment2], dim=0)
+        return augment1, augment2
 
     def sample_transform(self) -> T.Compose:
         transforms = [
@@ -56,5 +59,41 @@ class SimCLRDataset(Dataset):
 
         return T.Compose(transforms)
 
+
+class CIFAR10Extracted(Dataset):
+    def __init__(
+        self,
+        extractor: nn.Module,
+        path: str | Path = "~/data/cifar-10/",
+        train: bool = True,
+        batch_size: int = 256,
+        device: str = "cuda" if torch.cuda.is_available() else "cpu",
+    ):
+        base_dataset = CIFAR10Tensor(path=path, train=train)
+        loader = torch.utils.data.DataLoader(
+            base_dataset,
+            batch_size=batch_size,
+            shuffle=False,
+        )
+
+        extractor = extractor.to(device)
+        extractor.eval()
+
+        embeddings = []
+        labels = []
+
+        with torch.no_grad():
+            for images, targets in loader:
+                images = images.to(device)
+                features = extractor(images)
+                embeddings.append(features.cpu())
+                labels.append(targets)
+
+        self.embeddings = torch.cat(embeddings, dim=0)
+        self.labels = torch.cat(labels, dim=0)
+
+    def __getitem__(self, idx: int) -> tuple[Tensor, Number]:
+        return self.embeddings[idx], self.labels[idx].item()
+
     def __len__(self) -> int:
-        return len(self.data)
+        return len(self.labels)
