@@ -4,7 +4,6 @@ from typing import Any, Callable
 import torch
 from pydantic import BaseModel, ConfigDict
 from torch import Tensor, nn, optim
-from torch.amp import GradScaler, autocast
 from torch.utils.data import DataLoader, Dataset
 
 from progress import EpochBar
@@ -100,8 +99,6 @@ class SimCLRTrainer(BaseModel):
         best_model_state = copy.deepcopy(self.model.state_dict())
         best_head_state = copy.deepcopy(self.head.state_dict())
 
-        scaler = GradScaler()
-
         for epoch in range(1, epochs + 1):
             total_loss = 0
             average_loss = 0.0
@@ -116,15 +113,15 @@ class SimCLRTrainer(BaseModel):
 
                     self.optimizer.zero_grad()
 
-                    with autocast(device_type=self.device):
-                        outputs = self.model(inputs)
-                        outputs = self.head(outputs)
-                        outputs = nn.functional.normalize(outputs, dim=1)
-                        loss = self._loss_fn(outputs)
+                    outputs = self.model(inputs)
+                    outputs = self.head(outputs)
 
-                    scaler.scale(loss).backward()
-                    scaler.step(self.optimizer)
-                    scaler.update()
+                    # Normalize and compute loss in float32 to avoid overflow
+                    outputs = nn.functional.normalize(outputs.float(), dim=1)
+                    loss = self._loss_fn(outputs)
+
+                    loss.backward()
+                    self.optimizer.step()
 
                     total_loss += loss.item()
                     average_loss = total_loss / (i + 1)
@@ -142,11 +139,11 @@ class SimCLRTrainer(BaseModel):
                         inputs = torch.stack(inputs, dim=1).flatten(0, 1)
                         inputs = inputs.to(self.device, non_blocking=True)
 
-                        with autocast(device_type=self.device):
-                            outputs = self.model(inputs)
-                            outputs = self.head(outputs)
-                            outputs = nn.functional.normalize(outputs, dim=1)
-                            loss = self._loss_fn(outputs)
+                        outputs = self.model(inputs)
+                        outputs = self.head(outputs)
+
+                        outputs = nn.functional.normalize(outputs.float(), dim=1)
+                        loss = self._loss_fn(outputs)
 
                         total_validation_loss += loss.item()
                         average_validation_loss = total_validation_loss / (i + 1)

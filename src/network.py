@@ -135,7 +135,7 @@ class ResNet10(nn.Module):
         return x
 
 
-class ResNet12(nn.Module):
+class ResNet10Wide(nn.Module):
     def __init__(self):
         super().__init__()
 
@@ -156,14 +156,12 @@ class ResNet12(nn.Module):
             BasicBlock(48, 48),
             BasicBlock(48, 48),
             BasicBlock(48, 48),
-            BasicBlock(48, 48),
         )
 
         # In 48, 32, 32
         # Out 96, 16, 16
         self.conv96 = nn.Sequential(
             BasicBlock(48, 96),
-            BasicBlock(96, 96),
             BasicBlock(96, 96),
             BasicBlock(96, 96),
         )
