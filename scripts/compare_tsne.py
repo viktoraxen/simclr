@@ -4,13 +4,12 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import torch
-import torchvision.transforms.v2 as T
 from sklearn.manifold import TSNE
-from torchvision.datasets import CIFAR10
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from network import ResNet10, load_model
+from dataset import CIFAR10Tensor
+from network import ResNet10, init_model
 
 CIFAR10_CLASSES = [
     "airplane",
@@ -94,26 +93,13 @@ def plot_tsne_subplot(ax, projected, labels, title, highlight_class=None):
 
 def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    models_dir = Path(__file__).parent.parent / "models"
 
     print("Loading models...")
-    trained_model = load_model(ResNet10, models_dir / "ResNet10_1.1987.pth", device=device)
+    trained_model = init_model("models")
     untrained_model = ResNet10()
 
-    transform = T.Compose(
-        [
-            T.PILToTensor(),
-            T.ToDtype(torch.float32, scale=True),
-        ]
-    )
-
     print("Loading dataset...")
-    dataset = CIFAR10(
-        root="~/data/cifar-10/",
-        train=False,
-        transform=transform,
-        download=True,
-    )
+    dataset = CIFAR10Tensor(train=False)
 
     print("Computing embeddings for trained model...")
     trained_embeddings, labels = compute_embeddings(trained_model, dataset, device=device)
@@ -137,7 +123,7 @@ def main():
 
     # Row 1: All classes
     ax1 = fig.add_subplot(3, 2, 1, projection="3d")
-    plot_tsne_subplot(ax1, projected_trained, labels, "Trained (ResNet10_1.1987) - All Classes")
+    plot_tsne_subplot(ax1, projected_trained, labels, "Trained - All Classes")
 
     ax2 = fig.add_subplot(3, 2, 2, projection="3d")
     plot_tsne_subplot(ax2, projected_untrained, labels, "Untrained - All Classes")
