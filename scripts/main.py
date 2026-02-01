@@ -1,30 +1,28 @@
 import torch.nn as nn
 from torch.optim import AdamW
-from torch.optim.lr_scheduler import (
-    ReduceLROnPlateau,
-)
+from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
 
 from dataset import SimCLRDataset
-from network import ResNet9, save_model
+from network import ResNet10, save_model
 from trainer import SimCLRTrainer
 
 
 def main():
-    epochs = 1000
-    batch_size = 512
+    epochs = 400
+    batch_size = 1024
     learning_rate = 0.3 * batch_size / 256
     weight_decay = 1e-6
-    scheduler_patience = 10
-    trainer_patience = 30
+    warmup_epochs = 10
+    temperature = 0.07
 
     dataset_train = SimCLRDataset(train=True)
     dataset_test = SimCLRDataset(train=False)
 
-    model = ResNet9()
+    model = ResNet10()
     head = nn.Sequential(
-        nn.Linear(128, 128),
+        nn.Linear(128, 256),
         nn.ReLU(),
-        nn.Linear(128, 128),
+        nn.Linear(256, 128),
     )
 
     optimizer = AdamW(
@@ -33,12 +31,9 @@ def main():
         weight_decay=weight_decay,
     )
 
-    scheduler = ReduceLROnPlateau(
-        optimizer,
-        factor=0.3,
-        patience=scheduler_patience,
-        min_lr=0,
-    )
+    warmup = LinearLR(optimizer, start_factor=0.01, total_iters=warmup_epochs)
+    cosine = CosineAnnealingLR(optimizer, T_max=epochs - warmup_epochs)
+    scheduler = SequentialLR(optimizer, [warmup, cosine], milestones=[warmup_epochs])
 
     trainer = SimCLRTrainer(
         model=model,
@@ -47,7 +42,7 @@ def main():
         validation_dataset=dataset_test,
         optimizer=optimizer,
         scheduler=scheduler,
-        patience=trainer_patience,
+        temperature=temperature,
     )
 
     loss = trainer.train(

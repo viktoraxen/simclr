@@ -78,7 +78,7 @@ class BasicBlock(nn.Module):
         return F.relu(x_)
 
 
-class ResNet9(nn.Module):
+class ResNet10(nn.Module):
     def __init__(self):
         super().__init__()
 
@@ -134,18 +134,18 @@ class ResNet9(nn.Module):
 
         return x
 
-    @classmethod
-    def load(cls, path: str | Path, device: str) -> "ResNet9":
-        checkpoint = torch.load(
-            path,
-            map_location=device,
-            weights_only=True,
-        )
 
-        model = cls()
-        model.load_state_dict(checkpoint)
+def load_model(cls, path: str | Path, device: str) -> nn.Module:
+    checkpoint = torch.load(
+        path,
+        map_location=device,
+        weights_only=True,
+    )
 
-        return model
+    model = cls()
+    model.load_state_dict(checkpoint)
+
+    return model
 
 
 def save_model(model: nn.Module, path: str | Path, suffix: str = ""):
@@ -163,13 +163,13 @@ def save_model(model: nn.Module, path: str | Path, suffix: str = ""):
 
 def init_model(models_dir: str | Path | None = None) -> nn.Module:
     if models_dir is None:
-        return ResNet9()
+        return ResNet10()
 
     models_dir = Path(models_dir) if isinstance(models_dir, str) else models_dir
     models = sorted(models_dir.glob("*.pth")) if models_dir.exists() else []
 
     if not models:
-        return ResNet9()
+        return ResNet10()
 
     print("Available models:")
 
@@ -184,9 +184,9 @@ def init_model(models_dir: str | Path | None = None) -> nn.Module:
         choice = int(input("\nInvalid selection, try again: "))
 
     if choice == 0:
-        return ResNet9()
+        return ResNet10()
 
-    return ResNet9.load(
+    return ResNet10.load(
         models[choice - 1],
         device="cuda" if torch.cuda.is_available() else "cpu",
     )

@@ -14,7 +14,7 @@ uv sync
 uv sync --extra cpu
 ```
 
-Train the backbone (trained model is saved to `models/ResNet9_<best_validation_loss>.pth`):
+Train the backbone (trained model is saved to `models/ResNet10_<best_validation_loss>.pth`):
 
 ```bash
 uv run scripts/main.py
@@ -42,7 +42,7 @@ Training was done using the [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.ht
 
 ### Network
 
-The ResNet9 network used is defined in `src/network.py`.
+The ResNet10 network used is defined in `src/network.py`.
 
 It starts with an upscaling to 32 feature dimensions using a 5x5 convolutional kernel, followed by three sets of three basic convolution blocks with residual connections. The last set outputs a feature map of shape `[128, 8, 8]`, which is converted to a `128`-dimensional feature vector through average pooling.
 

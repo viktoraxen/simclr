@@ -56,6 +56,7 @@ class SimCLRDataset(CIFAR10Tensor):
                 hue=0.1,
             ),
             T.RandomGrayscale(p=0.2),
+            T.RandomSolarize(threshold=0.5, p=0.2),
             T.GaussianBlur(kernel_size=3),
         ]
 

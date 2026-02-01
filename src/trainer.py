@@ -18,7 +18,7 @@ class SimCLRTrainer(BaseModel):
     scheduler: Any
     training_dataset: Dataset
     validation_dataset: Dataset
-    patience: int
+    patience: int | None = None
     temperature: float = 0.07
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -157,9 +157,9 @@ class SimCLRTrainer(BaseModel):
             else:
                 epochs_without_improvement += 1
 
-            self.scheduler.step(average_validation_loss)
+            self.scheduler.step()
 
-            if epochs_without_improvement > self.patience:
+            if self.patience is not None and epochs_without_improvement > self.patience:
                 final_epoch = epoch
                 break
 
