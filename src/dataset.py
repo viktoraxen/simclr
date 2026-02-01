@@ -45,15 +45,17 @@ class SimCLRDataset(CIFAR10Tensor):
         transforms = [
             T.RandomResizedCrop(
                 size=32,
-                scale=(0.08, 0.5),
+                scale=(0.08, 1.0),
                 ratio=(0.75, 1.33),
             ),
+            T.RandomHorizontalFlip(),
             T.ColorJitter(
-                brightness=0.3,
-                contrast=0.3,
-                saturation=0.3,
-                hue=0.3,
+                brightness=0.4,
+                contrast=0.4,
+                saturation=0.4,
+                hue=0.1,
             ),
+            T.RandomGrayscale(p=0.2),
             T.GaussianBlur(kernel_size=3),
         ]
 

@@ -55,7 +55,7 @@ def main():
         batch_size=batch_size,
     )
 
-    save_model(model, "models", f"_{loss}")
+    save_model(model, "models", f"_{loss:.4f}")
 
 
 if __name__ == "__main__":

@@ -108,7 +108,8 @@ class SimCLRTrainer(BaseModel):
 
             with EpochBar(epoch, len(training_loader)) as epoch_bar:
                 for i, inputs in enumerate(training_loader):
-                    inputs = torch.cat(inputs, dim=0).to(self.device, non_blocking=True)
+                    inputs = torch.stack(inputs, dim=1).flatten(0, 1)
+                    inputs = inputs.to(self.device, non_blocking=True)
 
                     self.optimizer.zero_grad()
 
@@ -134,7 +135,8 @@ class SimCLRTrainer(BaseModel):
 
                 with torch.no_grad():
                     for i, inputs in enumerate(validation_loader):
-                        inputs = inputs.to(self.device, non_blocking=True).flatten(0, 1)
+                        inputs = torch.stack(inputs, dim=1).flatten(0, 1)
+                        inputs = inputs.to(self.device, non_blocking=True)
 
                         outputs = self.model(inputs)
                         outputs = self.head(outputs)
