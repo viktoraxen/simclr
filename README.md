@@ -56,6 +56,8 @@ Best achieved accuracy (so far) by the classifier head is **80.72 %**
 
 The used backbone ResNet10 had a contrastive loss of **1.3703**
 
+More info on the training parameters can be found in `results.md`.
+
 #### Visualizations
 
 The clustering of the trained ResNet, compared to an untrained network is shown:
