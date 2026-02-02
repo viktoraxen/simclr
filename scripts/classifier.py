@@ -22,9 +22,9 @@ def main():
     validation_dataset = CIFAR10Extracted(extrator, train=False)
 
     model = nn.Sequential(
-        nn.Linear(128, 128),
+        nn.Linear(192, 192),
         nn.ReLU(),
-        nn.Linear(128, 10),
+        nn.Linear(192, 10),
     )
 
     optimizer = AdamW(

@@ -8,7 +8,7 @@ from trainer import SimCLRTrainer
 
 
 def main():
-    epochs = 800
+    epochs = 600
     batch_size = 512 + 128
     learning_rate = 0.3 * batch_size / 256
     weight_decay = 1e-6
