@@ -41,3 +41,25 @@ Device               cuda
 
 Validation loss: 1.3703
 Accuracy: 80.72 %
+
+Model                ResNet10Wide
+Model params         3.11M
+Head params          148.0K
+Total params         3.26M
+
+Training samples     50000
+Validation samples   10000
+Batch size           640
+Max epochs           600
+
+Optimizer            AdamW
+Learning rate        0.0075
+Weight decay         1e-06
+Scheduler            SequentialLR
+Early stop patience  None
+
+Temperature          0.07
+Device               cuda
+
+Validation loss: 0.9199
+Accuracy: 85.16 %
