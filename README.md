@@ -14,7 +14,7 @@ uv sync
 uv sync --extra cpu
 ```
 
-Train the backbone (trained model is saved to `models/ResNet10_<best_validation_loss>.pth`):
+Train the backbone (trained model is saved to `models/<model_name>_<best_validation_loss>.pth`):
 
 ```bash
 uv run scripts/main.py
@@ -52,13 +52,13 @@ Evaluation was done by training a small classification head with one 128 neuron 
 
 ### Results
 
-Best achieved accuracy (so far) by the classifier head is **80.72 %**
+Best achieved accuracy (so far) by the classifier head is **85.16 %**
 
-The used backbone ResNet10 had a contrastive loss of **1.3703**
+The used backbone ResNet10 had a contrastive loss of **0.9199**
 
 More info on the training parameters can be found in `results.md`.
 
 #### Visualizations
 
 The clustering of the trained ResNet, compared to an untrained network is shown:
-<img width="600" height="900" alt="comparison_tsne" src="https://github.com/user-attachments/assets/8ff11b4f-df43-4a9b-a179-fcf5d174b37d" />
+<img width="600" height="900" alt="comparison_tsne" src="https://github.com/user-attachments/assets/c59278a2-ec91-4e3b-8006-b06395184d72" />
